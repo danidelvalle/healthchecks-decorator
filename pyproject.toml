@@ -29,7 +29,6 @@ sphinx = "^4.3.0"
 sphinx-autobuild = ">=2021.3.14"
 pre-commit = "^2.15.0"
 flake8 = "^4.0.1"
-black = ">=21.10b0"
 flake8-bandit = "^2.1.2"
 flake8-bugbear = "^21.9.2"
 flake8-docstrings = "^1.6.0"
@@ -42,6 +41,7 @@ sphinx-click = "^3.0.2"
 Pygments = "^2.10.0"
 pyupgrade = "^2.29.1"
 furo = ">=2021.11.12"
+black = "^22.3.0"
 
 [tool.poetry.scripts]
 healthchecks-decorator = "healthchecks_decorator.__main__:main"
@@ -57,6 +57,7 @@ source = ["healthchecks_decorator", "tests"]
 [tool.coverage.report]
 show_missing = true
 fail_under = 100
+exclude_lines = ["@t.overload"]
 
 [tool.mypy]
 strict = true
