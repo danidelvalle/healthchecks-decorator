@@ -41,9 +41,9 @@ A simple python decorator for `healthchecks.io`_.
 Features
 --------
 
-* Just decorate your function with ``@healthcheck``.
-* Support for sending ``/start`` signals to measure jobs execution times.
-* Support both SaaS and self-hosted
+* Just decorate your function with ``@healthcheck`` 🚀.
+* Support sending ``/start`` signals to measure job execution times ⏲️.
+* Support both SaaS and self-hosted endpoints 😊.
 
 
 Requirements
@@ -69,7 +69,7 @@ Usage
 
    @healthcheck(url="https://hc-ping.com/<uuid>")
    def my_job():
-      """Job with a healthcheck signal when done"""
+      """Job with a success healthcheck signal when done"""
       pass
 
 
