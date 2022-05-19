@@ -67,6 +67,8 @@ Usage
 
 .. code:: python
 
+   from healthchecks_decorator import healthcheck
+
    @healthcheck(url="https://hc-ping.com/<uuid>")
    def my_job():
       """Job with a success healthcheck signal when done"""
@@ -105,8 +107,8 @@ please `file an issue`_ along with a detailed description.
 
 Credits
 -------
-
-This project was generated from `@cjolowicz`_'s `Hypermodern Python Cookiecutter`_ template.
+* `healthchecks.io`_.
+* This project was generated from `@cjolowicz`_'s `Hypermodern Python Cookiecutter`_ template.
 
 .. _@cjolowicz: https://github.com/cjolowicz
 .. _Cookiecutter: https://github.com/audreyr/cookiecutter
