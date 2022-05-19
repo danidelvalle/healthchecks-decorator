@@ -77,7 +77,7 @@ Usage
    def my_job2():
       """Job with also a /start signal before starting"""
       pass
-   
+
 
 Please see the `Documentation`_ for details.
 
