@@ -2,10 +2,7 @@
 import typing as t
 from functools import partial
 from functools import wraps
-from urllib.parse import quote_plus
-from urllib.parse import urljoin
 from urllib.request import urlopen
-
 
 WrappedFn = t.TypeVar("WrappedFn", bound=t.Callable[..., t.Any])
 
@@ -34,13 +31,6 @@ def _http_request(endpoint: str, timeout: t.Optional[int] = 10) -> bool:
         return False
 
 
-def _build_url(base: str, uuid: str, extra: str = "") -> str:
-    full_url = urljoin(base, uuid)
-    if extra:
-        return f"{full_url}/{quote_plus(extra)}"
-    return full_url
-
-
 @t.overload
 def healthcheck(func: WrappedFn) -> WrappedFn:  # noqa: D103
     pass
@@ -48,7 +38,7 @@ def healthcheck(func: WrappedFn) -> WrappedFn:  # noqa: D103
 
 @t.overload
 def healthcheck(  # noqa: D103
-    *, uuid: str, host: str, send_start: bool = False
+    *, url: str, send_start: bool = False
 ) -> t.Callable[[WrappedFn], WrappedFn]:
     pass
 
@@ -56,32 +46,30 @@ def healthcheck(  # noqa: D103
 def healthcheck(
     func: t.Union[WrappedFn, None] = None,
     *,
-    uuid: str = "",
-    host: str = "https://hc-ping.com",
+    url: str = "",
     send_start: bool = False,
 ) -> t.Union[WrappedFn, t.Callable[[WrappedFn], WrappedFn]]:
     """Healthcheck decorator.
 
     Args:
         func (t.Union[WrappedFn, None], optional): The function to decorate. Defaults to None.
-        uuid (str): The check UUID. Defaults to "".
-        host (str): The healthchecks host. Defaults to "https://hc-ping.com".
+        url (str): The ping URL (e.g.: "https://hc-ping.com/<uuid>"). Must start with `http`.
         send_start (bool): Whether to send a '/start' signal. Defaults to False.
 
     Returns:
         t.Union[WrappedFn, t.Callable[[WrappedFn], WrappedFn]]: A wrapped function.
     """
     if func is None:
-        return t.cast(
-            WrappedFn, partial(healthcheck, uuid=uuid, host=host, send_start=send_start)
-        )
+        return t.cast(WrappedFn, partial(healthcheck, url=url, send_start=send_start))
 
     @wraps(func)
     def healthcheck_wrapper(*args: t.Any, **kwargs: t.Any) -> t.Any:
         if send_start:
-            _http_request(_build_url(host, uuid, "start"))
+            sep = "" if url.endswith("/") else "/"
+            url_with_start = f"{url}{sep}start"
+            _http_request(url_with_start)
         wrapped_result = func(*args, **kwargs)  # type: ignore
-        _http_request(_build_url(host, uuid))
+        _http_request(url)
         return wrapped_result
 
     return t.cast(WrappedFn, healthcheck_wrapper)
