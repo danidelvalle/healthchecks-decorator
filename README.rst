@@ -67,13 +67,13 @@ Usage
 
 .. code:: python
 
-   @healthchecks(url="https://hc-ping.com/<uuid>")
+   @healthcheck(url="https://hc-ping.com/<uuid>")
    def my_job():
       """Job with a healthcheck signal when done"""
       pass
 
 
-   @healthchecks(url="https://hc-ping.com/<uuid>", send_start=True)
+   @healthcheck(url="https://hc-ping.com/<uuid>", send_start=True)
    def my_job2():
       """Job with also a /start signal before starting"""
       pass
