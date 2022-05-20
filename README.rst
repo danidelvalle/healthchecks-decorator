@@ -43,6 +43,7 @@ Features
 
 * Just decorate your function with ``@healthcheck`` 🚀.
 * Support sending ``/start`` signals to measure job execution times ⏲️.
+* Automatic ``/failure`` signals when jobs produce exceptions 🔥.
 * Support both SaaS and self-hosted endpoints 😊.
 
 
@@ -69,16 +70,21 @@ Usage
 
    from healthchecks_decorator import healthcheck
 
-   @healthcheck(url="https://hc-ping.com/<uuid>")
-   def my_job():
+   @healthcheck(url="https://hc-ping.com/<uuid1>")
+   def job():
       """Job with a success healthcheck signal when done"""
       pass
 
 
-   @healthcheck(url="https://hc-ping.com/<uuid>", send_start=True)
-   def my_job2():
-      """Job with also a /start signal before starting"""
+   @healthcheck(url="https://hc-ping.com/<uuid2>", send_start=True)
+   def job_with_start():
+      """Send also a /start signal before starting"""
       pass
+
+   @healthcheck(url="https://hc-ping.com/<uuid3>")
+   def job_with_exception():
+      """This will produce a /fail signal"""
+      raise Exception("I'll be propagated")
 
 
 Please see the `Documentation`_ for details.

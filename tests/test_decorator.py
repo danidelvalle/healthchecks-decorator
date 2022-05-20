@@ -56,6 +56,19 @@ def test_exception(url: str) -> None:
         assert function_with_failing_healthcheck()
 
 
+def test_wrapped_exception(url: str) -> None:
+    """Test a failure scenario when the wrapped function raises an exception."""
+
+    @healthcheck(url=url)
+    def function_that_raises_exception() -> bool:
+        raise Exception("inner exception")
+
+    with patch("healthchecks_decorator.decorator.urlopen") as urlopen_mock:
+        with pytest.raises(Exception):
+            function_that_raises_exception()
+        urlopen_mock.assert_called_once_with(url + "/fail", timeout=10)
+
+
 def test_wrong_url_schema() -> None:
     """Test invalid URL schemas."""
     with pytest.raises(ValueError):
