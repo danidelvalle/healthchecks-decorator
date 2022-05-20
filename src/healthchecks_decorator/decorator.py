@@ -62,14 +62,21 @@ def healthcheck(
     if func is None:
         return t.cast(WrappedFn, partial(healthcheck, url=url, send_start=send_start))
 
+    sep = "" if url.endswith("/") else "/"
+
     @wraps(func)
     def healthcheck_wrapper(*args: t.Any, **kwargs: t.Any) -> t.Any:
         if send_start:
-            sep = "" if url.endswith("/") else "/"
             url_with_start = f"{url}{sep}start"
             _http_request(url_with_start)
-        wrapped_result = func(*args, **kwargs)  # type: ignore
-        _http_request(url)
-        return wrapped_result
+
+        try:
+            wrapped_result = func(*args, **kwargs)  # type: ignore
+            _http_request(url)
+            return wrapped_result
+        except Exception as e:
+            url_with_fail = f"{url}{sep}fail"
+            _http_request(url_with_fail)
+            raise e
 
     return t.cast(WrappedFn, healthcheck_wrapper)
