@@ -10,7 +10,6 @@ Here is a list of important resources for contributors:
 - `Source Code`_
 - `Documentation`_
 - `Issue Tracker`_
-- `Code of Conduct`_
 
 .. _MIT license: https://opensource.org/licenses/MIT
 .. _Source Code: https://github.com/danidelvalle/healthchecks-decorator
@@ -120,4 +119,3 @@ This will allow a chance to talk it over with the owners and validate your appro
 
 .. _pull request: https://github.com/danidelvalle/healthchecks-decorator/pulls
 .. github-only
-.. _Code of Conduct: CODE_OF_CONDUCT.rst
