@@ -69,6 +69,20 @@ def test_wrapped_exception(url: str) -> None:
         urlopen_mock.assert_called_once_with(url + "/fail", timeout=10)
 
 
+def test_missing_url() -> None:
+    """Test that nothing happens if the url is not defined (None or empty)."""
+
+    def func() -> bool:
+        return True
+
+    with patch("healthchecks_decorator.decorator.urlopen") as urlopen_mock:
+        assert healthcheck(url=None)(func)()  # type: ignore
+        urlopen_mock.assert_not_called()
+
+        assert healthcheck(url="")(func)()
+        urlopen_mock.assert_not_called()
+
+
 def test_wrong_url_schema() -> None:
     """Test invalid URL schemas."""
     with pytest.raises(ValueError):

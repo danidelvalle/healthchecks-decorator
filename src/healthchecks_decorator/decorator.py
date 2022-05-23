@@ -1,10 +1,14 @@
 """Healthchecks Decorator."""
+import logging
 import typing as t
 from functools import partial
 from functools import wraps
 from urllib.request import urlopen
 
 WrappedFn = t.TypeVar("WrappedFn", bound=t.Callable[..., t.Any])
+
+log = logging.getLogger(__name__)
+log.addHandler(logging.NullHandler())
 
 
 def _http_request(endpoint: str, timeout: t.Optional[int] = 10) -> bool:
@@ -61,6 +65,10 @@ def healthcheck(
     """
     if func is None:
         return t.cast(WrappedFn, partial(healthcheck, url=url, send_start=send_start))
+
+    if url is None or not len(url):
+        log.warning("Disabling @healthcheck: 'url' argument is not provided")
+        return func
 
     sep = "" if url.endswith("/") else "/"
 
