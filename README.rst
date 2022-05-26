@@ -81,10 +81,18 @@ Usage
       """Send also a /start signal before starting"""
       pass
 
+
    @healthcheck(url="https://hc-ping.com/<uuid3>")
    def job_with_exception():
       """This will produce a /fail signal"""
       raise Exception("I'll be propagated")
+
+
+   @healthcheck(url="https://hc-ping.com/<uuid4>", send_diagnostics=True)
+   def job_with_diagnostics():
+      """Send the returned value in the POST body.
+      The returned value must be a valid input for `urllib.parse.urlencode`, otherwise nothing will be sent."""
+      return {"temperature": -7}
 
 
 Please see the `Documentation`_ for details.
