@@ -123,7 +123,6 @@ Credits
 .. _Hypermodern Python Cookiecutter: https://github.com/cjolowicz/cookiecutter-hypermodern-python
 .. _file an issue: https://github.com/danidelvalle/healthchecks-decorator/issues
 .. _pip: https://pip.pypa.io/
-.. github-only
 .. _Contributor Guide: CONTRIBUTING.rst
 .. _Documentation: https://healthchecks-decorator.readthedocs.io/
 .. _healthchecks.io: https://healthchecks.io/
