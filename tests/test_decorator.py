@@ -1,5 +1,6 @@
 """Test cases for the decorator module."""
 import socket
+import typing as t
 from unittest.mock import call
 from unittest.mock import patch
 
@@ -25,7 +26,7 @@ def test_minimal(url: str) -> None:
     with patch("healthchecks_decorator.decorator.urlopen") as urlopen_mock:
 
         assert function_to_wrap()
-        urlopen_mock.assert_called_once_with(url, timeout=10)
+        urlopen_mock.assert_called_once_with(url, data=None, timeout=10)
 
 
 def test_with_send_start(url: str) -> None:
@@ -38,8 +39,8 @@ def test_with_send_start(url: str) -> None:
     with patch("healthchecks_decorator.decorator.urlopen") as urlopen_mock:
         assert function_with_arg("test")
         expected_calls = [
-            call(f"{url}/start", timeout=10),
-            call(url, timeout=10),
+            call(f"{url}/start", data=None, timeout=10),
+            call(url, data=None, timeout=10),
         ]
         urlopen_mock.assert_has_calls(expected_calls)
 
@@ -66,7 +67,7 @@ def test_wrapped_exception(url: str) -> None:
     with patch("healthchecks_decorator.decorator.urlopen") as urlopen_mock:
         with pytest.raises(Exception):
             function_that_raises_exception()
-        urlopen_mock.assert_called_once_with(url + "/fail", timeout=10)
+        urlopen_mock.assert_called_once_with(url + "/fail", data=None, timeout=10)
 
 
 def test_missing_url() -> None:
@@ -81,6 +82,26 @@ def test_missing_url() -> None:
 
         assert healthcheck(url="")(func)()
         urlopen_mock.assert_not_called()
+
+
+def test_diagnostics(url: str) -> None:
+    """Test sending diagnostics."""
+    diagnostics = {"foo": "bar"}
+
+    @healthcheck(url=url, send_diagnostics=True)
+    def f(diag: t.Any) -> t.Any:
+        return diag
+
+    with patch("healthchecks_decorator.decorator.urlopen") as urlopen_mock:
+        assert f(diagnostics) == diagnostics
+        expected_data = b"foo=bar"
+        urlopen_mock.assert_called_once_with(url, data=expected_data, timeout=10)
+
+    with patch("healthchecks_decorator.decorator.urlopen") as urlopen_mock:
+        # invalid diagnostics should not crash our wrapped func
+        invalid_diag = "not a valid non-string sequence or mapping object"
+        assert f(invalid_diag) == invalid_diag
+        urlopen_mock.assert_called_once_with(url, data=None, timeout=10)
 
 
 def test_wrong_url_schema() -> None:
