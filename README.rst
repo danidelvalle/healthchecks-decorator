@@ -44,6 +44,7 @@ Features
 * Just decorate your function with ``@healthcheck`` 🚀.
 * Support sending ``/start`` signals to measure job execution times ⏲️.
 * Automatic ``/failure`` signals when jobs produce exceptions 🔥.
+* Send diagnostics information 🌡️.
 * Support both SaaS and self-hosted endpoints 😊.
 
 
@@ -91,7 +92,8 @@ Usage
    @healthcheck(url="https://hc-ping.com/<uuid4>", send_diagnostics=True)
    def job_with_diagnostics():
       """Send the returned value in the POST body.
-      The returned value must be a valid input for `urllib.parse.urlencode`, otherwise nothing will be sent."""
+      The returned value must be a valid input for `urllib.parse.urlencode`.
+      Otherwise, nothing will be sent."""
       return {"temperature": -7}
 
 
