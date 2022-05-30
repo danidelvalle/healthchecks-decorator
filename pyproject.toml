@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "healthchecks-decorator"
-version = "0.3.0"
+version = "0.4.0"
 description = "Healthchecks Decorator"
 authors = ["Daniel del Valle <delvalle.dani@gmail.com>"]
 license = "MIT"
