@@ -1,8 +1,10 @@
 """Healthchecks Decorator."""
 import logging
 import typing as t
+from dataclasses import dataclass
 from functools import partial
 from functools import wraps
+from os import getenv
 from urllib.parse import urlencode
 from urllib.request import urlopen
 
@@ -10,6 +12,38 @@ WrappedFn = t.TypeVar("WrappedFn", bound=t.Callable[..., t.Any])
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
+
+
+ENV_VAR_PREFIX = "HEALTHCHECK"
+
+
+@dataclass
+class HealthcheckConfig:
+    """Healthecheks config."""
+
+    url: t.Optional[str]
+    send_start: t.Optional[bool]
+    send_diagnostics: t.Optional[bool]
+
+    def __getattribute__(self, name: str) -> t.Any:
+        """Overloaded to get info from environment variables or defaults when not defined."""
+        candidate = super().__getattribute__(name)
+
+        # [1] Return explicit values
+        if candidate is not None:
+            return candidate
+
+        # [2] Env vars
+        envvar_value = getenv(f"{ENV_VAR_PREFIX}_{name.upper()}")
+        if envvar_value:
+            return (
+                envvar_value
+                if name == "url"
+                else envvar_value.strip().lower() in ("true", "1")
+            )
+
+        # [3] Return default values
+        return None if name == "url" else False
 
 
 def _http_request(
@@ -56,7 +90,10 @@ def healthcheck(func: WrappedFn) -> WrappedFn:  # noqa: D103
 
 @t.overload
 def healthcheck(  # noqa: D103
-    *, url: str, send_start: bool = False, send_diagnostics: bool = False
+    *,
+    url: t.Optional[str] = None,
+    send_start: t.Optional[bool] = None,
+    send_diagnostics: t.Optional[bool] = False,
 ) -> t.Callable[[WrappedFn], WrappedFn]:
     pass
 
@@ -64,18 +101,18 @@ def healthcheck(  # noqa: D103
 def healthcheck(
     func: t.Union[WrappedFn, None] = None,
     *,
-    url: str = "",
-    send_start: bool = False,
-    send_diagnostics: bool = False,
+    url: t.Optional[str] = None,
+    send_start: t.Optional[bool] = None,
+    send_diagnostics: t.Optional[bool] = None,
 ) -> t.Union[WrappedFn, t.Callable[[WrappedFn], WrappedFn]]:
     """Healthcheck decorator.
 
     Args:
         func (t.Union[WrappedFn, None], optional): The function to decorate. Defaults to None.
         url (str): The ping URL (e.g.: "https://hc-ping.com/<uuid>"). Must start with `http`.
-        send_start (bool): Whether to send a '/start' signal. Defaults to False.
-        send_diagnostics (bool): When enabled, send the wrapped function returned value as diagnostics information.
-                                 Defaults to False.
+        send_start (bool, optional): Whether to send a '/start' signal. Defaults to False.
+        send_diagnostics (bool, optional): When enabled, send the wrapped function returned value as
+                                           diagnostics information. Defaults to False.
 
     Returns:
         t.Union[WrappedFn, t.Callable[[WrappedFn], WrappedFn]]: A wrapped function.
@@ -91,29 +128,35 @@ def healthcheck(
             ),
         )
 
-    if url is None or not len(url):
+    # Resolve the config combining explicit values, env vars and defaults
+    config: HealthcheckConfig = HealthcheckConfig(
+        url=url, send_diagnostics=send_diagnostics, send_start=send_start
+    )
+
+    if config.url is None or not len(config.url):
         log.warning("Disabling @healthcheck: 'url' argument is not provided")
         return func
 
-    sep = "" if url.endswith("/") else "/"
+    sep = "" if config.url.endswith("/") else "/"
 
     @wraps(func)
     def healthcheck_wrapper(*args: t.Any, **kwargs: t.Any) -> t.Any:
-        if send_start:
-            url_with_start = f"{url}{sep}start"
+        assert config.url is not None  # noqa: S101
+        if config.send_start:
+            url_with_start = f"{config.url}{sep}start"
             _http_request(url_with_start)
 
         try:
             wrapped_result = func(*args, **kwargs)  # type: ignore
             _http_request(
-                url,
+                config.url,
                 data=_validate_diagnostics(wrapped_result)
-                if send_diagnostics
+                if config.send_diagnostics
                 else None,
             )
             return wrapped_result
         except Exception as e:
-            url_with_fail = f"{url}{sep}fail"
+            url_with_fail = f"{config.url}{sep}fail"
             _http_request(url_with_fail)
             raise e
 

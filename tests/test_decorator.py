@@ -1,6 +1,7 @@
 """Test cases for the decorator module."""
 import socket
 import typing as t
+from os import environ
 from unittest.mock import call
 from unittest.mock import patch
 
@@ -8,6 +9,7 @@ import pytest
 
 from healthchecks_decorator import healthcheck
 from healthchecks_decorator.decorator import _http_request
+from healthchecks_decorator.decorator import HealthcheckConfig
 
 
 @pytest.fixture
@@ -27,6 +29,21 @@ def test_minimal(url: str) -> None:
 
         assert function_to_wrap()
         urlopen_mock.assert_called_once_with(url, data=None, timeout=10)
+
+
+def test_minimalist(url: str) -> None:
+    """Test the most minimalist usage with env vars."""
+    environ["HEALTHCHECK_URL"] = url
+
+    @healthcheck
+    def func() -> bool:
+        return True
+
+    with patch("healthchecks_decorator.decorator.urlopen") as urlopen_mock:
+        assert func()
+        urlopen_mock.assert_called_once_with(url, data=None, timeout=10)
+
+    del environ["HEALTHCHECK_URL"]
 
 
 def test_with_send_start(url: str) -> None:
@@ -77,7 +94,7 @@ def test_missing_url() -> None:
         return True
 
     with patch("healthchecks_decorator.decorator.urlopen") as urlopen_mock:
-        assert healthcheck(url=None)(func)()  # type: ignore
+        assert healthcheck(url=None)(func)()
         urlopen_mock.assert_not_called()
 
         assert healthcheck(url="")(func)()
@@ -108,3 +125,34 @@ def test_wrong_url_schema() -> None:
     """Test invalid URL schemas."""
     with pytest.raises(ValueError):
         _http_request("file:///tmp/localfile.txt")
+
+
+def test_envvars(url: str) -> None:
+    """Test configuring with env vars."""
+    # No explicit settings + no env vars => defaults
+    c = HealthcheckConfig(url=None, send_diagnostics=None, send_start=None)
+    assert c.send_diagnostics is False
+    assert c.send_start is False
+    assert c.url is None
+
+    # Set some env vars
+
+    # No explicit settings + env vars => env vars
+    environ["HEALTHCHECK_URL"] = url
+    environ["HEALTHCHECK_SEND_DIAGNOSTICS"] = "TRue"  # case should not affect
+    environ["HEALTHCHECK_SEND_START"] = "1"  # this should alse be True
+    c = HealthcheckConfig(url=None, send_diagnostics=None, send_start=None)
+    assert c.send_diagnostics is True
+    assert c.send_start is True
+    assert c.url == url
+
+    # explicit settings + env vars => explicit settings
+    other_url = url + "/other"
+    c = HealthcheckConfig(url=other_url, send_diagnostics=False, send_start=False)
+    assert c.send_diagnostics is False
+    assert c.send_start is False
+    assert c.url == other_url
+
+    del environ["HEALTHCHECK_URL"]
+    del environ["HEALTHCHECK_SEND_DIAGNOSTICS"]
+    del environ["HEALTHCHECK_SEND_START"]
