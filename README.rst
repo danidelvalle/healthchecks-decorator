@@ -67,6 +67,9 @@ You can install *Healthchecks Decorator* via pip_ from PyPI_:
 Usage
 -----
 
+Basic usage
+^^^^^^^^^^^
+
 .. code:: python
 
    from healthchecks_decorator import healthcheck
@@ -97,8 +100,32 @@ Usage
       return {"temperature": -7}
 
 
-Please see the `Documentation`_ for details.
+Environment variables
+^^^^^^^^^^^^^^^^^^^^^
 
+It is possible to set options through environment variables. Each option has a corresponding environment variable
+defined by the option name in *upper snake case* with the ``HEALTHCHECK_`` prefix.
+
+For example, setting:
+
+* ``HEALTHCHECK_URL=http://fake-hc.com/uuid``
+* ``HEALTHCHECK_SEND_DIAGNOSTICS=TRUE``
+* ``HEALTHCHECK_SEND_START=1``
+
+will allow having the most minimalist usage:
+
+.. code:: python
+
+   @healthcheck
+   def job():
+      """Url, send_diagnostics and send_start are grabbed from environment."""
+      pass
+
+
+.. note::  Boolean options will be parsed as ``True`` if the env var is set to the word 'true' (in any case) or '1'.
+   Otherwise, the option is set to ``False``.
+
+Please see the `Documentation`_ for details.
 
 Contributing
 ------------
