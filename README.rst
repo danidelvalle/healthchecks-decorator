@@ -125,6 +125,8 @@ will allow having the most minimalist usage:
 .. note::  Boolean options will be parsed as ``True`` if the env var is set to the word 'true' (in any case) or '1'.
    Otherwise, the option is set to ``False``.
 
+.. note::  Explicit values take precedence over environment variables.
+
 Please see the `Documentation`_ for details.
 
 Contributing
