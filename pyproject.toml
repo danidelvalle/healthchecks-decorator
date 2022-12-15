@@ -41,7 +41,7 @@ sphinx-click = "^4.3.0"
 Pygments = "^2.13.0"
 pyupgrade = "^3.3.1"
 furo = ">=2021.11.12"
-black = "^22.10.0"
+black = "^22.12.0"
 
 [tool.poetry.scripts]
 healthchecks-decorator = "healthchecks_decorator.__main__:main"
