@@ -19,7 +19,7 @@ Changelog = "https://github.com/danidelvalle/healthchecks-decorator/releases"
 python = "^3.7"
 
 [tool.poetry.dev-dependencies]
-pytest = "^7.2.0"
+pytest = "^7.2.2"
 coverage = {extras = ["toml"], version = "^7.2"}
 safety = "^2.3.5"
 mypy = "^1.0"
