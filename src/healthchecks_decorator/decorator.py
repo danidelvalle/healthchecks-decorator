@@ -2,8 +2,7 @@
 import logging
 import typing as t
 from dataclasses import dataclass
-from functools import partial
-from functools import wraps
+from functools import partial, wraps
 from os import getenv
 from urllib.parse import urlencode
 from urllib.request import urlopen
@@ -147,7 +146,7 @@ def healthcheck(
             _http_request(url_with_start)
 
         try:
-            wrapped_result = func(*args, **kwargs)  # type: ignore
+            wrapped_result = func(*args, **kwargs)
             _http_request(
                 config.url,
                 data=_validate_diagnostics(wrapped_result)
