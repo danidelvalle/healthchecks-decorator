@@ -2,7 +2,8 @@
 import logging
 import typing as t
 from dataclasses import dataclass
-from functools import partial, wraps
+from functools import partial
+from functools import wraps
 from os import getenv
 from urllib.parse import urlencode
 from urllib.request import urlopen
