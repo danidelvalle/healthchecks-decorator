@@ -147,7 +147,7 @@ def healthcheck(
             _http_request(url_with_start)
 
         try:
-            wrapped_result = func(*args, **kwargs)  # type: ignore
+            wrapped_result = func(*args, **kwargs)
             _http_request(
                 config.url,
                 data=_validate_diagnostics(wrapped_result)
