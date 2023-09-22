@@ -13,10 +13,10 @@ classifiers = [
 ]
 
 [tool.poetry.urls]
-Changelog = "https://github.com/danidelvalle/healthchecks-decorator/releases"
+Changelog = "https://github.com/danidelvalle/healthchecks-decora|/releases"
 
 [tool.poetry.dependencies]
-python = "^3.7"
+python = "^3.8"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.3.2"
