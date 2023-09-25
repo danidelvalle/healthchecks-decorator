@@ -72,7 +72,7 @@ class HealthcheckConfig:
                 logging.warning(f"Invalid netloc for URL: {self.url}")
                 return False
             return True
-        except ValueError:
+        except AttributeError:
             logging.warning(f"Invalid URL: {self.url}")
             return False
 

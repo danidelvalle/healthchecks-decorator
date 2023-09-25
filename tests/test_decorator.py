@@ -151,8 +151,16 @@ def test_invalid_url() -> None:
     )
     assert bool(config) is False
 
-    # Test with a URL that has an invalid hostname
+    # No scheme
     config = HealthcheckConfig(url="dkakasdkjdjakdjadjfalskdjfalk", **extra_args)
+    assert bool(config) is False
+
+    # No netloc
+    config = HealthcheckConfig(url="https://", **extra_args)
+    assert bool(config) is False
+
+    # Wrong type
+    config = HealthcheckConfig(url=123.23, **extra_args)
     assert bool(config) is False
 
 
