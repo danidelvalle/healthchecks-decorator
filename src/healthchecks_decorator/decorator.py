@@ -6,6 +6,8 @@ from functools import partial
 from functools import wraps
 from os import getenv
 from urllib.parse import urlencode
+from urllib.parse import urlparse
+from urllib.parse import urlunparse
 from urllib.request import urlopen
 
 WrappedFn = t.TypeVar("WrappedFn", bound=t.Callable[..., t.Any])
@@ -15,6 +17,7 @@ log.addHandler(logging.NullHandler())
 
 
 ENV_VAR_PREFIX = "HEALTHCHECK"
+VALID_URL_SCHEMES = ("http", "https")
 
 
 @dataclass
@@ -24,6 +27,54 @@ class HealthcheckConfig:
     url: t.Optional[str]
     send_start: t.Optional[bool]
     send_diagnostics: t.Optional[bool]
+
+    def _build_url_with_path(self, path: str) -> str:
+        """Build a sub URL."""
+        parsed_url = urlparse(self.url)
+        sep = "" if parsed_url.path.endswith("/") else "/"  # type: ignore
+        new_path = parsed_url.path + sep + path  # type: ignore
+        new_url = urlunparse(
+            (  # type: ignore
+                parsed_url.scheme,
+                parsed_url.netloc,
+                new_path,
+                parsed_url.params,
+                parsed_url.query,
+                parsed_url.fragment,
+            )
+        )
+        return new_url  # type: ignore
+
+    @property
+    def start_url(self) -> str:
+        """Return the start URL."""
+        return self._build_url_with_path("start")
+
+    @property
+    def fail_url(self) -> str:
+        """Return the fail URL."""
+        return self._build_url_with_path("fail")
+
+    def __bool__(self) -> bool:
+        """Return True if the config is valid, False otherwise."""
+        if not self.url:
+            logging.warning("Missing URL")
+            return False
+
+        try:
+            parsed_url = urlparse(self.url)
+
+            if parsed_url.scheme not in VALID_URL_SCHEMES:
+                logging.warning(f"Invalid URL scheme for URL: {self.url}")
+                return False
+
+            if not parsed_url.netloc:
+                logging.warning(f"Invalid netloc for URL: {self.url}")
+                return False
+            return True
+        except ValueError:
+            logging.warning(f"Invalid URL: {self.url}")
+            return False
 
     def __getattribute__(self, name: str) -> t.Any:
         """Overloaded to get info from environment variables or defaults when not defined."""
@@ -58,19 +109,13 @@ def _http_request(
         timeout (int, optional): Connection timeout in seconds. Defaults to 10.
         data (bytes, optional): Optional diagnostic data. Defaults to None.
 
-    Raises:
-        ValueError: if the endpoint schema is not http or https
-
     Returns:
         bool: True if the request succeeded, False otherwise.
     """
     try:
-        if endpoint.lower().startswith("http"):
-            # Bandit will still complain, so S310 is omitted
-            urlopen(endpoint, data=data, timeout=timeout)  # noqa: S310
-            return True
-        else:
-            raise ValueError("Only http[s] schemes allowed.") from None
+        # Bandit will still complain, so S310 is omitted
+        urlopen(endpoint, data=data, timeout=timeout)  # noqa: S310
+        return True
     except OSError:
         return False
 
@@ -133,18 +178,15 @@ def healthcheck(
         url=url, send_diagnostics=send_diagnostics, send_start=send_start
     )
 
-    if config.url is None or not len(config.url):
-        log.warning("Disabling @healthcheck: 'url' argument is not provided")
+    if not config:
+        log.warning("Disabling @healthcheck: invalid config")
         return func
-
-    sep = "" if config.url.endswith("/") else "/"
 
     @wraps(func)
     def healthcheck_wrapper(*args: t.Any, **kwargs: t.Any) -> t.Any:
         assert config.url is not None  # noqa: S101
         if config.send_start:
-            url_with_start = f"{config.url}{sep}start"
-            _http_request(url_with_start)
+            _http_request(config.start_url)
 
         try:
             wrapped_result = func(*args, **kwargs)
@@ -156,8 +198,7 @@ def healthcheck(
             )
             return wrapped_result
         except Exception as e:
-            url_with_fail = f"{config.url}{sep}fail"
-            _http_request(url_with_fail)
+            _http_request(config.fail_url)
             raise e
 
     return t.cast(WrappedFn, healthcheck_wrapper)
