@@ -8,7 +8,6 @@ from unittest.mock import patch
 import pytest
 
 from healthchecks_decorator import healthcheck
-from healthchecks_decorator.decorator import _http_request
 from healthchecks_decorator.decorator import HealthcheckConfig
 
 
@@ -26,7 +25,6 @@ def test_minimal(url: str) -> None:
         return True
 
     with patch("healthchecks_decorator.decorator.urlopen") as urlopen_mock:
-
         assert function_to_wrap()
         urlopen_mock.assert_called_once_with(url, data=None, timeout=10)
 
@@ -121,10 +119,49 @@ def test_diagnostics(url: str) -> None:
         urlopen_mock.assert_called_once_with(url, data=None, timeout=10)
 
 
-def test_wrong_url_schema() -> None:
+def test_url_with_query() -> None:
+    """Test urls with queries, as '?create=1'."""
+    slug_url = "https://hc-ping.com/fqOOd6-F4MMNuCEnzTU01w/db-backups?create=1"
+    c = HealthcheckConfig(url=slug_url, send_start=True, send_diagnostics=False)
+    assert c.url == slug_url
+    assert (
+        c.start_url
+        == "https://hc-ping.com/fqOOd6-F4MMNuCEnzTU01w/db-backups/start?create=1"
+    )
+    assert (
+        c.fail_url
+        == "https://hc-ping.com/fqOOd6-F4MMNuCEnzTU01w/db-backups/fail?create=1"
+    )
+
+
+def test_invalid_url() -> None:
     """Test invalid URL schemas."""
-    with pytest.raises(ValueError):
-        _http_request("file:///tmp/localfile.txt")
+    args = dict(send_start=True, send_diagnostics=False)
+
+    # Valid URL
+    assert (
+        bool(HealthcheckConfig(url="https://fake-hc.com/0000-1111-2222-3333", **args))
+        is True
+    )
+
+    # Empty or None URL
+    assert bool(HealthcheckConfig(url="", **args)) is False
+    assert bool(HealthcheckConfig(url=None, **args)) is False
+
+    # Non-HTTP(S) scheme
+    assert (
+        bool(HealthcheckConfig(url="ftp://fake-hc.com/0000-1111-2222-3333", **args))
+        is False
+    )
+
+    # No scheme
+    assert bool(HealthcheckConfig(url="dkakasdkjdjakdjadjfalskdjfalk", **args)) is False
+
+    # No netloc
+    assert bool(HealthcheckConfig(url="https://", **args)) is False
+
+    # Wrong type
+    assert bool(HealthcheckConfig(url=123.23, **args)) is False  # type: ignore
 
 
 def test_envvars(url: str) -> None:

@@ -41,17 +41,20 @@ A simple python decorator for `healthchecks.io`_.
 Features
 --------
 
-* Just decorate your function with ``@healthcheck`` 🚀.
-* Support sending ``/start`` signals to measure job execution times ⏲️.
-* Automatic ``/failure`` signals when jobs produce exceptions 🔥.
-* Send diagnostics information 🌡️.
-* Support both SaaS and self-hosted endpoints 😊.
+The `healthchecks-decorator` library provides the following features:
+
+* 🚀 **Easy to use:** Simply decorate your function with `@healthcheck` to enable health checks.
+* ⏲️ **Execution time measurement:** Supports sending `/start` signals to measure job execution times.
+* 🔥 **Exception handling:** Automatically sends `/failure` signals when jobs produce exceptions.
+* 🤖 **Auto-provisioning:** Supports automatic provisioning of new health checks by adding `?create=1` to the ping URL.
+* 🌡️ **Diagnostics information:** Send diagnostics information to help diagnose issues.
+* 😊 **Flexible endpoint support:** Supports both SaaS and self-hosted endpoints.
 
 
 Requirements
 ------------
 
-* None - only pure python 🐍.
+* None - just pure python 🐍.
 
 
 Installation
