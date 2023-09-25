@@ -136,32 +136,32 @@ def test_url_with_query() -> None:
 
 def test_invalid_url() -> None:
     """Test invalid URL schemas."""
-    extra_args = dict(send_start=True, send_diagnostics=False)
-    config = HealthcheckConfig(
-        url="https://fake-hc.com/0000-1111-2222-3333", **extra_args
-    )
-    assert bool(config) is True
+    args = dict(send_start=True, send_diagnostics=False)
 
-    config = HealthcheckConfig(url="", **extra_args)
-    assert bool(config) is False
-
-    # Test with a URL that has a non-HTTP(S) scheme
-    config = HealthcheckConfig(
-        url="ftp://fake-hc.com/0000-1111-2222-3333", **extra_args
+    # Valid URL
+    assert (
+        bool(HealthcheckConfig(url="https://fake-hc.com/0000-1111-2222-3333", **args))
+        is True
     )
-    assert bool(config) is False
+
+    # Empty or None URL
+    assert bool(HealthcheckConfig(url="", **args)) is False
+    assert bool(HealthcheckConfig(url=None, **args)) is False
+
+    # Non-HTTP(S) scheme
+    assert (
+        bool(HealthcheckConfig(url="ftp://fake-hc.com/0000-1111-2222-3333", **args))
+        is False
+    )
 
     # No scheme
-    config = HealthcheckConfig(url="dkakasdkjdjakdjadjfalskdjfalk", **extra_args)
-    assert bool(config) is False
+    assert bool(HealthcheckConfig(url="dkakasdkjdjakdjadjfalskdjfalk", **args)) is False
 
     # No netloc
-    config = HealthcheckConfig(url="https://", **extra_args)
-    assert bool(config) is False
+    assert bool(HealthcheckConfig(url="https://", **args)) is False
 
     # Wrong type
-    config = HealthcheckConfig(url=123.23, **extra_args)
-    assert bool(config) is False
+    assert bool(HealthcheckConfig(url=123.23, **args)) is False
 
 
 def test_envvars(url: str) -> None:
