@@ -161,7 +161,7 @@ def test_invalid_url() -> None:
     assert bool(HealthcheckConfig(url="https://", **args)) is False
 
     # Wrong type
-    assert bool(HealthcheckConfig(url=123.23, **args)) is False
+    assert bool(HealthcheckConfig(url=123.23, **args)) is False  # type: ignore
 
 
 def test_envvars(url: str) -> None:
